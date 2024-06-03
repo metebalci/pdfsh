@@ -39,13 +39,13 @@ def run():
                             help='pdf file')
         parser.add_argument('-v', '--verbose',
                             action='store_true',
-                            help='enable general verbose/INFO logging')
+                            help='enable VERBOSE/INFO logging')
         parser.add_argument('-d', '--debug',
                             action='store_true',
-                            help='enable general DEBUG logging and verbose/INFO for parser and tokenizer)')
+                            help='enable DEBUG logging')
         parser.add_argument('--log-file',
                             default='pdfsh.log',
-                            help='output logs to LOG_FILE')
+                            help='output logs to LOG_FILE (defaults: pdfsh.log)')
         args = parser.parse_args()
 
         loggingFormat = '%(levelname)s/%(filename)s: %(message)s'
