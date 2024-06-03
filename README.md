@@ -1,3 +1,5 @@
+*** This is an ongoing project, pypi distribution is not released yet.***
+
 # pdfsh
 
 `pdfsh` is a utility to investigate the PDF file structure in a shell-like interface. The idea is similar to the pseudo file system sysfs in Linux. `pdfsh` allows one to "mount" a PDF file and use a simple shell-like interface to navigate inside the PDF file structurally (not visually, `pdfsh` is not a PDF reader).

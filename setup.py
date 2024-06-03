@@ -52,8 +52,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'pdfsh=pdfsh.pdfsh:run',
-            'pdfcat=pdfsh.pdfcat:run',
+            'pdfsh=pdfsh.pdfsh:run'
         ],
     },
 )
