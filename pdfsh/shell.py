@@ -29,14 +29,10 @@ from typing import Callable, List, Tuple
 from .cmdline import Cmdline
 from .objects import *
 from .document import Document
-from .header import Header
-from .body import Body
-from .xrt import CrossReferenceTable
-from .trailer import Trailer
 
 logger = logging.getLogger(__name__)
 
-obj_types_as_str = {
+_obj_types_as_str = {
     PdfBoolean:             'boolean object',
     PdfIntegerNumber:       'integer object',
     PdfRealNumber:          'real object',
@@ -50,20 +46,20 @@ obj_types_as_str = {
     PdfIndirectReference:   'indirect reference'
 }
 
-def generate_node_output(obj):
+def _generate_node_output(obj):
     # most objects are a direct subclass
-    v = obj_types_as_str.get(obj.__class__, None)
+    v = _obj_types_as_str.get(obj.__class__, None)
     # some are subclasses of subclasses of PdfDirectObject
     if v is None:
-        for (k, v) in obj_types_as_str.items():
+        for (k, v) in _obj_types_as_str.items():
             if isinstance(obj, k):
                 return v
 
     return 'unknown'
 
-def generate_cat_output(obj, level=1, stop=None):
-    if stop is not None and level > stop:
-        return ''
+def _generate_cat_output(obj, level=1, stop=None):
+    if level is None or level == 0:
+        raise ValueError()
 
     if (isinstance(obj, PdfBoolean) or
         isinstance(obj, PdfIntegerNumber) or
@@ -78,52 +74,49 @@ def generate_cat_output(obj, level=1, stop=None):
         return '%s' % str(obj.p)[1:]
 
     elif isinstance(obj, PdfStream):
-        s1 = generate_cat_output(obj.stream_dictionary, level, stop)
-        s2 = 'stream=[%d]' % (0 if obj.stream_data is None else len(obj.stream_data))
-        return '%s\n\r%s' % (s1, s2)
+        # cat only shows the stream dictionary
+        # use cats or catsx to see the stream data
+        return _generate_cat_output(obj.stream_dictionary, level, level+1)
 
     elif isinstance(obj, PdfArray):
-        s = ''
-        for i, array_element in enumerate(obj):
-            if i == 0:
-                s = '%s' % generate_cat_output(array_element,
-                                               level+1,
-                                               stop)
-
-            else:
-                s = '%s, %s' % (s,
-                                generate_cat_output(array_element,
+        if stop is not None and level >= stop:
+            return '[...]'
+        else:
+            s = ''
+            for i, array_element in enumerate(obj):
+                if i == 0:
+                    s = '%s' % _generate_cat_output(array_element,
                                                     level+1,
-                                                    stop))
+                                                    stop)
 
-        return '[%s]' % s
+                else:
+                    s = '%s, %s' % (s,
+                                    _generate_cat_output(array_element,
+                                                        level+1,
+                                                        stop))
+
+            return '[%s]' % s
 
     elif isinstance(obj, PdfDictionary):
-        s = []
-        s.append('%s{' % (' ' * (level-1)))
-        i = 0
-        items = obj.items()
-        for (k, v) in items:
-            comma = ','
-            i = i + 1
-            if i == len(items):
-                comma = ''
-            if isinstance(v, PdfDictionary):
-                s.append('%s%s:' % (' ' * level,
-                                    generate_cat_output(k,
-                                                        level,
-                                                        stop)))
-                s.append('%s%s' % (generate_cat_output(v,
-                                                       level+1,
-                                                       stop), comma))
-            else:
-                s.append('%s%s: %s%s' % (' ' * level,
-                                         generate_cat_output(k, level, stop),
-                                         generate_cat_output(v, level, stop),
+        if stop is not None and level >= stop:
+            return '{...}'
+
+        else:
+            s = []
+            items = obj.items()
+            for (i, (k, v)) in enumerate(items):
+                comma = ',' if i < (len(items) - 1) else ''
+                s.append('%s%s: %s%s' % ('  ' * level,
+                                         _generate_cat_output(k,
+                                                              level,
+                                                              stop),
+                                         _generate_cat_output(v,
+                                                              level+1,
+                                                              stop),
                                          comma))
 
-        s.append('%s}' % (' ' * (level-1)))
-        return '\n\r'.join(s)
+            return '{\n\r%s\n\r%s}' % ('\n\r'.join(s),
+                                       '  ' * (level-1))
 
     else:
         raise PossibleBugException()
@@ -436,12 +429,12 @@ class Shell(Cmdline):
 
             else:
                 self.set_normal_color()
-                self.println(generate_cat_output(node.data))
+                self.println(_generate_cat_output(node.data, 1, 4))
 
-    def command_cats_catsx(self, path:str, ascii:bool) -> None:
+    def command_cats_catsx(self, path:str, text:bool) -> None:
         # cats/catsx
         if path is None:
-            self.error('usage: %s <path_to_stream>' % 'cats' if ascii else 'catsx')
+            self.error('usage: %s <path_to_stream>' % 'cats' if text else 'catsx')
 
         # cats/catsx <path>
         else:
@@ -454,8 +447,8 @@ class Shell(Cmdline):
 
             else:
                 self.set_normal_color()
-                if ascii:
-                    self.println('%s' % node.data.stream_data.decode('ascii',
+                if text:
+                    self.println('%s' % node.data.stream_data.decode('utf-8',
                                                                      'replace'))
                 else:
                     self.println('%s' % node.data.stream_data.hex())
