@@ -78,7 +78,7 @@ A node can be:
 
 When the path points to a leaf node, it displays the contents of a leaf node.
 
-When the path points to a container node, (this is different than a traditional regular), it also displays the contents of the container node. This is limited to only one level, if the container has container elements, these are not expanded.
+When the path points to a container node, (this is different than a traditional regular), it also displays the contents of the container node. This is limited to only a few levels (sub-sub-container elements are not shown).
 
 If the path points to a ref node, it also displays the content of the ref node (not its target).
 
@@ -97,9 +97,13 @@ These are slight variation of `cat` specific to stream nodes. `cat` only display
 
 ## Changes
 
-### 0.1
+Version numbers are in `<year>.<positive_integer>` format. The `<positive_integer` is monotonically increasing in a year but reset to `1` in a new year.
 
-- initial release
+### 2024.2
+- first public release
+
+### 2024.1
+- initial test release, not for public use
 
 ## External Licenses
 

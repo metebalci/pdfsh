@@ -29,8 +29,8 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='pdfsh',
-    version='0.1',
-    description='pdfsh is a minimal shell to investigate PDF files.',
+    version='2024.2',
+    description='minimal shell to investigate PDF files',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/metebalci/pdfsh',
@@ -40,10 +40,9 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Topic :: Utilities',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Programming Language :: Python :: 3.10',
+        'Topic :: Utilities'
     ],
 
     keywords='pdf',
