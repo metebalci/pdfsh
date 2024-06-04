@@ -2,13 +2,17 @@
 
 # pdfsh
 
-`pdfsh` is a utility to investigate the PDF file structure in a shell-like interface. The idea is similar to the pseudo file system sysfs in Linux. `pdfsh` allows one to "mount" a PDF file and use a simple shell-like interface to navigate inside the PDF file structurally (not visually, `pdfsh` is not a PDF reader).
+`pdfsh` is a utility to investigate the PDF file structure in a shell-like interface. The idea is similar to the pseudo file system sysfs in Linux. `pdfsh` allows one to "mount" a PDF file and use a simple shell-like interface to navigate inside the PDF file structurally.
+
+Technically, `pdfsh` is a PDF processor, a PDF reader, but not a viewer that renders the page contents.
 
 In `pdfsh`, similar to a file system, the PDF file is represented as a tree. All the nodes of the tree are PDF objects.
 
 `pdfsh` has its own ISO 32000-2:2020 PDF-2.0 parser.
 
 `pdfsh` uses ccitt and lzw filter implementations in [pdfminer.six](https://github.com/pdfminer/pdfminer.six). 
+
+`pdfsh` assumes it is run under a ANSI capable terminal as it uses ANSI terminal features and colors. If strange behavior is observed, make sure the terminal emulation it is run is ANSI compatible.
 
 ## Installation and Requirements
 
@@ -19,8 +23,6 @@ pip install pdfsh
 which installs a `pdfsh` executable into the path.
 
 It can also be run as a module `python -m pdfsh`.
-
-`pdfsh` requires an ANSI terminal and tested only on Linux. It does not require any extra packages (ccitt and lzw filter from pdfminer.six is integrated into the codebase).
 
 ## Design
 

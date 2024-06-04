@@ -55,7 +55,10 @@ def _generate_node_output(obj):
             if isinstance(obj, k):
                 return v
 
-    return 'unknown'
+        return 'unknown (%s)' % (obj.__class__.__name__)
+
+    else:
+        return v
 
 def _generate_cat_output(obj, level=1, stop=None):
     if level is None or level == 0:
@@ -71,7 +74,7 @@ def _generate_cat_output(obj, level=1, stop=None):
         return '%s' % str(obj)
 
     elif isinstance(obj, PdfName):
-        return '%s' % str(obj.p)[1:]
+        return '%s' % str(obj)[1:]
 
     elif isinstance(obj, PdfStream):
         # cat only shows the stream dictionary
@@ -467,7 +470,7 @@ class Shell(Cmdline):
             else:
                 self.set_normal_color()
                 self.println('%s is a %s' % (node.name,
-                                             generate_node_output(node.data)))
+                                             _generate_node_output(node.data)))
 
     def command_help(self) -> None:
         self.set_normal_color()
