@@ -48,75 +48,60 @@ class Parser:
     def __init__(self, buffer):
         self.buffer = buffer
         self.tokenizer = Tokenizer(self.buffer)
-        self.line_offsets = []
-        self._calculate_line_boundaries()
 
-    # calculates line boundaries
-    def _calculate_line_boundaries(self):
-        start = 0
+    def size(self):
+        return len(self.buffer)
+
+    def next_line(self):
+        start = self.tell()
         end = start
-        pos = 0
-        end_fixed = False
+        pos = start
         while pos < len(self.buffer):
             ch = self.buffer[pos]
             if pos > 0 and ch == ord('%'):
-                end_fixed = True
+                break
+            end = pos
             pos = pos + 1
-            # EOL, so found the line boundary
-            if (ch == LF) or (ch == CR):
-                end_fixed = False
-                self.line_offsets.append((start, end))
-            # skip LF if this is CR LF
-            if (ch == CR):
-                if pos < len(self.buffer):
-                    if self.buffer[pos] == LF:
-                        pos = pos + 1
-            # new start
-            if (ch == LF) or (ch == CR):
-                start = pos
-            # use pos as new end only if end position is not fixed
-            if not end_fixed:
-                end = pos
-        logger.info("number of lines: %d" % len(self.line_offsets))
-
-    def get_num_lines(self):
-        return len(self.line_offsets)
-
-    def get_line(self, line_number):
-        assert line_number < len(self.line_offsets)
-        (start, end) = self.line_offsets[line_number]
-        return self.buffer[start:end]
-
-    def _find_line(self, pos):
-        logger.debug('finding line covering byte offset %d' % pos)
-        for idx in range(0, len(self.line_offsets)):
-            (start, end) = self.line_offsets[idx]
-            if (start <= pos and
-                pos < end):
-                logger.debug('byte offset %d is in line %d [%d, %d)' % (pos,
-                                                                      idx,
-                                                                      start,
-                                                                      end))
-                return idx
-        return None
-
-    def next_line(self):
-        line_number = self._find_line(self.tell())
-        if line_number is None:
-            return None
-        (start, end) = self.line_offsets[line_number]
+            # LF is EOL
+            if (ch == LF):
+                break
+            # CR is EOL
+            elif ch == CR:
+                # CR LF is EOL, it is important to advance position +1
+                if pos < len(self.buffer) and self.buffer[pos] == LF:
+                    pos = pos + 1
+                break
+        self.seek(pos)
         line = self.buffer[start:end]
         logger.debug('line=%s 0x%s' % (line.decode('ascii', 'replace'),
-                                     line[0:16].hex() if len(line) > 16 else line.hex()))
-        # advance position to next line
-        # if this is last line set to its end
-        if (line_number+1) == len(self.line_offsets):
-            self.seek(end)
-        # if not, set to next start, EOL can be two chars CR LF
-        else:
-            (next_start, next_end) = self.line_offsets[line_number+1]
-            self.seek(next_start)
+                                       line[0:32].hex() if len(line) > 32 else line.hex()))
         return line
+
+    def seek_to_start_of_line(self):
+        pos = self.tell()
+        # if already at pos=0, cannot move back
+        if pos == 0:
+            return
+
+        # if on EOL marker, move back to last char to find the end of line
+        if self.buffer[pos] == LF or self.buffer[pos] == CR:
+            while pos >= 0:
+                if self.buffer[pos] == LF or self.buffer[pos] == CR:
+                    pos = pos - 1
+
+                else:
+                    break
+
+        # move back to CR or LF to find the start of the line
+        while pos >= 0:
+            if self.buffer[pos] == CR or self.buffer[pos] == LF:
+                self.seek(pos + 1)
+                return
+
+            else:
+                pos = pos - 1
+
+        self.seek(0)
 
     def reset(self):
         self.seek(0)
@@ -126,12 +111,6 @@ class Parser:
 
     def seek(self, pos):
         self.tokenizer.seek(pos)
-
-    def seek_to_line(self, line_number):
-        assert line_number < len(self.line_offsets)
-        (start, end) = self.line_offsets[line_number]
-        logger.info('seeking to line #%d offset %x' % (line_number, start))
-        self.seek(start)
 
     def next(self):
         token = self.tokenizer.next()

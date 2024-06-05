@@ -104,8 +104,10 @@ class CrossReferenceTableSubsection(PdfDictionary):
     # xref_entries* (see _read_xref_entry)
     @staticmethod
     def load(parser:Parser):
+        saved_pos = parser.tell()
         line = parser.next_line().decode('ascii', 'replace')
         if CrossReferenceTableSubsection.subsection_re.match(line) is None:
+            parser.seek(saved_pos)
             return None
         words = line.split(' ')
         first_object_number = int(words[0])
@@ -118,6 +120,7 @@ class CrossReferenceTableSubsection(PdfDictionary):
         for object_number in range(first_object_number,
                                    first_object_number + number_of_entries):
             xrt_entry = CrossReferenceTableEntry.load(parser, object_number)
+            logger.debug('xrt_entry: %s' % xrt_entry)
             xrt_subsection.append_entry(line, xrt_entry)
         return xrt_subsection
 
@@ -159,11 +162,15 @@ class CrossReferenceTableSection(PdfArray):
         if line != b'xref':
             raise PdfConformanceException('xref offset does not point to an xref')
         xrt_section = CrossReferenceTableSection()
+        logger.debug('loading xrt_subsections...')
         while True:
             xrt_subsection = CrossReferenceTableSubsection.load(parser)
             if xrt_subsection is None:
+                logger.debug('xrt_subsections loaded.')
                 break
+
             else:
+                logger.debug('xrt_subsection: %s' % xrt_subsection)
                 xrt_section.append(xrt_subsection)
 
         return xrt_section

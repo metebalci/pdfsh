@@ -38,7 +38,7 @@ class Header(PdfDictionary):
     # single EOL marker, where 'n' is a single digit number between 0 and 9
     @staticmethod
     def load(parser):
-        line = parser.get_line(0)
+        line = parser.next_line()
         logger.info('header: %s' % line.decode('ascii', 'replace'))
         line = line[0:8].decode('ascii', 'replace')
         if Header.version_re.match(line) is None:

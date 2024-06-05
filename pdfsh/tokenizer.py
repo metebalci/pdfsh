@@ -96,6 +96,9 @@ class Tokenizer:
     # seek resets the state because there is no way to know
     # be careful to not miss state changing positions when seeking
     def seek(self, pos:int):
+        # cannot set position more than size
+        if pos > len(self.buffer):
+            pos = len(self.buffer)
         logger.debug('tokenizer.pos = %d' % pos)
         self.pos = pos
         self.context = _TOKENIZER_CONTEXT_FREE

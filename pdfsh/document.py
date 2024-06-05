@@ -92,6 +92,7 @@ class Document(PdfDictionary):
         self.__load_body()
 
     def __load_header(self):
+        self.parser.seek(0)
         self[PdfName('header')] = Header.load(self.parser)
 
     def __load_xrt_sections_and_trailers(self):
@@ -103,7 +104,14 @@ class Document(PdfDictionary):
         while True:
             self.parser.seek(xrt_section_byte_offset)
             xrt_section = CrossReferenceTableSection.load(self.parser)
+            logger.debug('xrt_section: %s' % xrt_section)
             self.xrt.append(xrt_section)
+            while True:
+                trailer_keyword = self.parser.next_line()
+                if trailer_keyword is None:
+                    raise PdfConformanceError('no trailer keyword found')
+                elif trailer_keyword == b'trailer':
+                    break
             trailer_dictionary = self.parser.next()
             if not isinstance(trailer_dictionary, PdfDictionary):
                 raise PdfConformanceException('trailer is not a dictionary')
@@ -124,29 +132,28 @@ class Document(PdfDictionary):
                 xrt_section_byte_offset = xrt_section_byte_offset.p
 
     def __get_last_startxref_byte_offset(self) -> int:
-        line_number = self.parser.get_num_lines() - 1
-        while line_number >= 0:
-            line = self.parser.get_line(line_number)
+        pos = self.parser.seek(self.parser.size() - 1)
+        while True:
+            self.parser.seek_to_start_of_line()
+            pos = self.parser.tell()
+            line = self.parser.next_line()
             if line == b'startxref':
-                offset_line = self.parser.get_line(line_number+1)
+                offset_line = self.parser.next_line()
                 if offset_line is None:
                     PdfConformanceException('startxref offset not found')
-
                 offset_line = offset_line.decode('ascii', 'replace')
                 if Trailer.offset_re.match(offset_line) is None:
                     PdfConformanceException('startxref offset is not a number ?')
-
-                last_line = self.parser.get_line(line_number+2)
-                if last_line is None or last_line != b'%%EOF':
-                    PdfConformanceException('no %%EOF ?')
-
                 return int(offset_line)
 
             else:
-                line_number = line_number - 1
+                if pos == 0:
+                    break
+
+                else:
+                    self.parser.seek(pos - 1)
 
         raise PdfConformanceException('startxref not found')
-
 
     def __load_body(self):
         assert self.xrt is not None

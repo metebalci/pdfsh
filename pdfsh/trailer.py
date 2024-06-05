@@ -54,5 +54,11 @@ class Trailer(PdfDictionary):
 
         self[PdfName('dictionary')] = dictionary
         self[PdfName('startxref')] = PdfIntegerNumber(xref_section_byte_offset)
-        if PdfName('Prev') in dictionary:
-            self[PdfName('prev')] = dictionary[PdfName('Prev')]
+
+    @property
+    def prev(self):
+        return self[PdfName('prev')]
+
+    @prev.setter
+    def prev(self, new_prev: PdfDictionary):
+        self[PdfName('prev')] = new_prev

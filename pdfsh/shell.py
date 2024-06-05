@@ -432,7 +432,7 @@ class Shell(Cmdline):
 
             else:
                 self.set_normal_color()
-                self.println(_generate_cat_output(node.data, 1, 4))
+                self.println(_generate_cat_output(node.data, 1, 10))
 
     def command_cats_catsx(self, path:str, text:bool) -> None:
         # cats/catsx
@@ -445,7 +445,7 @@ class Shell(Cmdline):
             if node is None:
                 self.error('no such path %s' % path)
 
-            elif isinstance(node.data, PdfStream):
+            elif isinstance(node, PdfStream):
                 self.error('%s is not a stream' % path)
 
             else:
