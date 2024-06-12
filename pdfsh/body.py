@@ -25,5 +25,8 @@ from .objects import *
 
 logger = logging.getLogger(__name__)
 
-class Body(PdfDictionary):
+class Body(PdfArray):
+    pass
+
+class Objects(PdfDictionary):
     pass

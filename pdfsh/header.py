@@ -51,4 +51,4 @@ class Header(PdfDictionary):
     def __init__(self, line:str, version:str):
         super().__init__()
         self[PdfName('line')] = PdfLiteralString(line)
-        self[PdfName('version')] = PdfLiteralString(version)
+        self[PdfName('version')] = PdfName(version)

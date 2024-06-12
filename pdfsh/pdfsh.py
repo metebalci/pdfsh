@@ -30,19 +30,20 @@ logger = logging.getLogger(__name__)
 
 def run():
     try:
-
         parser = argparse.ArgumentParser(
             prog='pdfsh',
             description='',
             epilog='')
         parser.add_argument('file',
                             help='pdf file')
-        parser.add_argument('-v', '--verbose',
-                            action='store_true',
-                            help='enable VERBOSE/INFO logging')
+        parser.add_argument('-c', '--cmdline',
+                            help='execute CMDLINE and send output to stdout')
         parser.add_argument('-d', '--debug',
                             action='store_true',
                             help='enable DEBUG logging')
+        parser.add_argument('-v', '--verbose',
+                            action='store_true',
+                            help='enable VERBOSE/INFO logging')
         parser.add_argument('--log-file',
                             default='pdfsh.log',
                             help='output logs to LOG_FILE (defaults: pdfsh.log)')
@@ -53,27 +54,38 @@ def run():
         if args.log_file is not None:
             logging.basicConfig(filename=args.log_file,
                                 format=loggingFormat)
+
         else:
             logging.basicConfig(format=loggingFormat)
 
         if args.debug:
             print(args)
             logging.getLogger('pdfsh').setLevel(logging.DEBUG)
+
         elif args.verbose:
             logging.getLogger('pdfsh').setLevel(logging.INFO)
+
         else:
             logging.getLogger('pdfsh').setLevel(logging.WARNING)
 
         with open(args.file, 'rb') as f:
             document = Document(f.read())
-            print('pdfsh  Copyright (C) 2024  Mete Balci')
-            print('License GPLv3+: GNU GPL version 3 or later')
-            logger.debug('platform: %s' % sys.platform)
-            if not sys.platform.startswith('linux'):
-                print('WARNING: pdfsh is only tested on Linux')
-            Shell(document.get_object_by_ref,
-                  document,
-                  '%s' % args.file).run()
+            if args.cmdline is None:
+                print('pdfsh  Copyright (C) 2024  Mete Balci')
+                print('License GPLv3+: GNU GPL version 3 or later')
+                logger.debug('platform: %s' % sys.platform)
+                if not sys.platform.startswith('linux'):
+                    print('WARNING: pdfsh is only tested on Linux')
+
+            shell = Shell(document.get_object_by_ref,
+                          document,
+                          '%s' % args.file)
+            if args.cmdline:
+                shell.raw = True
+                shell.process_cmdline(args.cmdline)
+
+            else:
+                shell.run(args.cmdline is not None)
 
     except Exception as e:
         traceback.print_exc()

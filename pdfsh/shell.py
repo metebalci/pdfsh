@@ -33,17 +33,17 @@ from .document import Document
 logger = logging.getLogger(__name__)
 
 _obj_types_as_str = {
-    PdfBoolean:             'boolean object',
-    PdfIntegerNumber:       'integer object',
-    PdfRealNumber:          'real object',
-    PdfLiteralString:       'literal string object',
-    PdfHexadecimalString:   'hexadecimal string object',
-    PdfName:                'name object',
-    PdfArray:               'array object',
-    PdfDictionary:          'dictionary object',
-    PdfStream:              'stream object',
-    PdfNull:                'null object',
-    PdfIndirectReference:   'indirect reference'
+    PdfBoolean:             'a boolean object',
+    PdfIntegerNumber:       'an integer object',
+    PdfRealNumber:          'a real object',
+    PdfLiteralString:       'a literal string object',
+    PdfHexadecimalString:   'a hexadecimal string object',
+    PdfName:                'a name object',
+    PdfArray:               'an array object',
+    PdfDictionary:          'a dictionary object',
+    PdfStream:              'a stream object',
+    PdfNull:                'a null object',
+    PdfIndirectReference:   'an indirect reference'
 }
 
 def _generate_node_output(obj):
@@ -139,8 +139,9 @@ class ShellNode:
         self.parent = parent
 
     def __str__(self):
-        return '%s p:%s' % (self.name,
-                            self.parent.name if self.parent is not None else '')
+        return '%s t:%s p:%s' % (self.name,
+                                 type(self.data),
+                                 self.parent.name if self.parent is not None else '')
 
     def __repr__(self):
         return str(self)
@@ -164,6 +165,7 @@ class ShellNode:
             childs.append(ShellNode('body', self.data.body, self))
             childs.append(ShellNode('xrt', self.data.xrt, self))
             childs.append(ShellNode('trailer', self.data.trailer, self))
+            childs.append(ShellNode('objects', self.data.objects, self))
 
         elif isinstance(self.data, PdfArray):
             for i, array_element in enumerate(self.data):
@@ -211,6 +213,7 @@ class ShellTree:
             return '/%s' % '/'.join(path_elements[::-1])
 
     def node_at_path(self, path:str) -> ShellNode:
+        logger.debug('node_at_path: %s' % path)
         if path[0] == '/':
             node = self.root
 
@@ -232,8 +235,11 @@ class ShellTree:
 
             else:
                 found = False
+                logger.debug('path_element: %s' % path_element)
                 for child_node in node.childs:
+                    logger.debug('child_node.name: %s' % child_node.name)
                     if child_node.name == path_element:
+                        logger.debug('found: %s' % child_node)
                         node = child_node
                         found = True
                         break
@@ -278,7 +284,8 @@ class Shell(Cmdline):
         return '%s:%s $ ' % (self.prompt_prefix, self.tree.current_path)
 
     def set_cmdline_color(self) -> None:
-        self.print(Shell.colors['prompt'])
+        if not self.raw:
+            self.print(Shell.colors['prompt'])
 
     def complete_cmdline(self, cmdline:str) -> str:
         completion = ''
@@ -362,13 +369,16 @@ class Shell(Cmdline):
             self.process_command(cmd, path)
 
     def set_container_color(self):
-        self.print(Shell.colors['container'])
+        if not self.raw:
+            self.print(Shell.colors['container'])
 
     def set_ref_color(self):
-        self.print(Shell.colors['ref'])
+        if not self.raw:
+            self.print(Shell.colors['ref'])
 
     def set_normal_color(self):
-        self.print(Shell.colors['normal'])
+        if not self.raw:
+            self.print(Shell.colors['normal'])
 
     def print_ls_childs(self, childs:List[ShellNode]) -> None:
         for node in childs:
@@ -434,10 +444,10 @@ class Shell(Cmdline):
                 self.set_normal_color()
                 self.println(_generate_cat_output(node.data, 1, 10))
 
-    def command_cats_catsx(self, path:str, text:bool) -> None:
+    def command_cats(self, path:str, cmd:str) -> None:
         # cats/catsx
         if path is None:
-            self.error('usage: %s <path_to_stream>' % 'cats' if text else 'catsx')
+            self.error('usage: %s <path_to_stream>' % cmd)
 
         # cats/catsx <path>
         else:
@@ -445,16 +455,37 @@ class Shell(Cmdline):
             if node is None:
                 self.error('no such path %s' % path)
 
-            elif isinstance(node, PdfStream):
+            elif not isinstance(node.data, PdfStream):
                 self.error('%s is not a stream' % path)
 
             else:
                 self.set_normal_color()
-                if text:
+
+                if cmd == 'cats':
                     self.println('%s' % node.data.stream_data.decode('utf-8',
                                                                      'replace'))
-                else:
+                elif cmd == 'catsx':
                     self.println('%s' % node.data.stream_data.hex())
+
+                elif cmd == 'catsb.decoded':
+                    if not self.raw:
+                        self.error('this command can only be run with -c option')
+
+                    else:
+                        sys.stdout.buffer.write(node.data.stream_data)
+                        sys.stdout.flush()
+
+                elif cmd == 'catsb.encoded':
+                    if not self.raw:
+                        self.error('this command can only be run with -c option')
+
+                    else:
+                        sys.stdout.buffer.write(node.data.encoded_stream_data)
+                        sys.stdout.flush()
+
+                else:
+                    raise PossibleBugException()
+
 
     def command_node(self, path:str) -> None:
         # node
@@ -469,8 +500,8 @@ class Shell(Cmdline):
 
             else:
                 self.set_normal_color()
-                self.println('%s is a %s' % (node.name,
-                                             _generate_node_output(node.data)))
+                self.println('%s is %s' % (node.name,
+                                           _generate_node_output(node.data)))
 
     def command_help(self) -> None:
         self.set_normal_color()
@@ -497,12 +528,11 @@ class Shell(Cmdline):
             self.command_cat(path)
 
         # cats <node>
-        elif cmd == 'cats':
-            self.command_cats_catsx(path, True)
-
-        # catsx <node>
-        elif cmd == 'catsx':
-            self.command_cats_catsx(path, False)
+        elif (cmd == 'cats' or
+              cmd == 'catsx' or
+              cmd == 'catsb.decoded' or
+              cmd == 'catsb.encoded'):
+            self.command_cats(path, cmd)
 
         # node <node>
         elif cmd == 'node':
@@ -519,5 +549,3 @@ class Shell(Cmdline):
         # unknown command
         else:
             self.error('no such command')
-
-

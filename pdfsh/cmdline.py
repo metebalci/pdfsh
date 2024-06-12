@@ -26,6 +26,8 @@ import termios
 import tty
 from typing import List
 
+from .exceptions import *
+
 logger = logging.getLogger(__name__)
 
 # 1- subclass
@@ -44,6 +46,7 @@ class Cmdline:
         self.history:List[str] = []
         self.history_pos:Int = 0
         self.last_up_down:bool = False
+        self.raw = False
 
     # return the prompt before the cmdline
     def get_cmdline_prompt(self) -> str:
@@ -66,6 +69,7 @@ class Cmdline:
         cmdline.append(ch)
         if self.pos < len(self.cmdline):
             cmdline.extend(self.cmdline[self.pos:])
+
         self.cmdline = cmdline
         self.pos = self.pos + 1
 
@@ -74,15 +78,21 @@ class Cmdline:
             cmdline = self.cmdline[0:self.pos-1]
             if self.pos < len(self.cmdline):
                 cmdline.extend(self.cmdline[self.pos:])
+
             self.cmdline = cmdline
             self.pos = self.pos - 1
 
     # print without new line
     def print(self, s:str) -> None:
+        if self.raw:
+            raise PossibleBugException('-c given but stdout is used')
+
         if not isinstance(s, str):
             raise ValueError()
+
         if s is None:
             raise ValueError()
+
         sys.stdout.write(s)
         sys.stdout.flush()
 
@@ -93,16 +103,20 @@ class Cmdline:
     def println(self, s:str='') -> None:
         if not isinstance(s, str):
             raise ValueError()
+
         if s is None:
             raise ValueError()
+
         self.print(s)
         self.newline()
 
     def error(self, s:str) -> None:
         if not isinstance(s, str):
             raise ValueError()
+
         if s is None:
             raise ValueError()
+
         self.println('error: %s' % s)
 
     def new_cmdline(self) -> None:

@@ -33,7 +33,7 @@ from .page import Page
 from .header import Header
 from .xrt import CrossReferenceTable, CrossReferenceTableSection
 from .trailer import Trailer
-from .body import Body
+from .body import Body, Objects
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,10 @@ class Document(PdfDictionary):
     @property
     def body(self):
         return self.get(PdfName('body'), None)
+
+    @property
+    def objects(self):
+        return self.get(PdfName('objects'), None)
 
     @property
     def xrt(self):
@@ -79,6 +83,15 @@ class Document(PdfDictionary):
         if byte_offset is None:
             return PdfNull()
 
+        self.parser.seek(byte_offset)
+        obj = self.parser.next()
+        if obj is None:
+            return PdfNull()
+        else:
+            return obj.value
+
+    def get_object_by_byte_offset(self,
+                                  byte_offset: int) -> PdfDirectObject:
         self.parser.seek(byte_offset)
         obj = self.parser.next()
         if obj is None:
@@ -158,21 +171,31 @@ class Document(PdfDictionary):
     def __load_body(self):
         assert self.xrt is not None
         self[PdfName('body')] = Body()
+        self[PdfName('objects')] = Objects()
         processed_entries = set()
         num_xrt_entries = 0
         for xrt_section in self.xrt:
+            current_body = PdfDictionary()
+            self.body.append(current_body)
             for xrt_subsection in xrt_section:
                 for xrt_entry in xrt_subsection.entries:
                     num_xrt_entries = num_xrt_entries + 1
+                    if xrt_entry.is_free:
+                        continue
+
+                    obj = self.get_object_by_byte_offset(xrt_entry.byte_offset)
+
+                    current_body[PdfName('%d.%d' % (xrt_entry.object_number,
+                                                    xrt_entry.generation_number))] = obj
+
                     if xrt_entry in processed_entries:
                         continue
 
-                    processed_entries.add(xrt_entry)
-                    if xrt_entry.is_in_use:
-                        obj = self.get_object_by_number(xrt_entry.object_number,
-                                                        xrt_entry.generation_number)
-                        self.body[PdfName('%d.%d' % (xrt_entry.object_number,
-                                                     xrt_entry.generation_number))] = obj
+                    else:
+                        processed_entries.add(xrt_entry)
+
+                    self.objects[PdfName('%d.%d' % (xrt_entry.object_number,
+                                                    xrt_entry.generation_number))] = obj
 
         logger.info('%d xrt entries.' % num_xrt_entries)
         logger.info('%d objects loaded.' % len(self.body))
