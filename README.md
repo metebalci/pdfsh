@@ -28,6 +28,8 @@ When `pdfsh` is run as `pdfsh <pdf_file>`, the shell interface is loaded with th
 
 ## Tutorial
 
+** blog post is not ready yet **
+
 For an introduction to PDF and a tutorial using `pdfsh`, please see my blog post [A Minimum Complete Tutorial of Portable Document Format (PDF) with pdfsh](https://metebalci.com/blog/a-minimum-complete-tutorial-of-pdf-with-pdfsh/).
 
 ## Changes
