@@ -85,7 +85,7 @@ def run():
                 shell.process_cmdline(args.cmdline)
 
             else:
-                shell.run(args.cmdline is not None)
+                shell.run()
 
     except Exception as e:
         traceback.print_exc()
