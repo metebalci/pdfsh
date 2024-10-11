@@ -3,10 +3,10 @@ unit-test:
 	python -m unittest
 
 type-check:
-	mypy pdfls
+	mypy pdfsh
 
 static-check:
-	pylint pdfls
+	pylint pdfsh
 
 upload:
 	rm -rf dist

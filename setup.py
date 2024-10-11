@@ -46,7 +46,8 @@ setup(
     ],
 
     keywords='pdf',
-    py_modules=['pdfsh'],
+
+    packages=['pdfsh', 'pdfminer'],
     install_requires=[''],
 
     entry_points={
