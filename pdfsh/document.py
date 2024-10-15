@@ -106,6 +106,7 @@ class Document(PdfDictionary):
         self.__load_header()
         self.__load_xrt_sections_and_trailers()
         self.__load_body()
+        logger.info("document loaded.")
 
     def __load_header(self):
         logger.debug("__load_header")
@@ -116,19 +117,19 @@ class Document(PdfDictionary):
         logger.debug("__load_xrt_sections_and_trailers")
         self[PdfName("xrt")] = CrossReferenceTable()
         xrt_section_byte_offset = self.__get_last_startxref_byte_offset()
-        logger.debug(
-            "last xrt section offset: 0x%x (%d)",
-            xrt_section_byte_offset,
-            xrt_section_byte_offset,
-        )
         trailer = None
         last_trailer = None
         while True:
+            logger.debug(
+                "xrt section offset: 0x%x (%d)",
+                xrt_section_byte_offset,
+                xrt_section_byte_offset,
+            )
             self.parser.seek(xrt_section_byte_offset)
             trailer_dictionary, xrt_section = CrossReferenceTableSection.load(
                 self.parser
             )
-            self.xrt.append(xrt_section)
+
             if trailer_dictionary is None:
                 while True:
                     trailer_keyword = self.parser.next_line()
@@ -142,15 +143,32 @@ class Document(PdfDictionary):
                 if not isinstance(trailer_dictionary, PdfDictionary):
                     raise PdfConformanceException("trailer is not a dictionary")
 
+                xref_stream_byte_offset = trailer_dictionary.get(PdfName('XRefStm'),
+                                                                 None)
+
+                if xref_stream_byte_offset is None:
+                    # cross-reference table section
+                    self.xrt.append(xrt_section)
+
+                else:
+                    logger.info("This is a hybrid-reference file, switching to stream.")
+                    parser.seek(xref_stream_byte_offset)
+                    trailer_dictionary, xrt_section = CrossReferenceTableSection.load(
+                        self.parser
+                    )
+                    assert trailer_dictionary is not None
+
+                    # cross-reference stream section of a hybrid-reference file
+                    self.xrt.append(xrt_section)
+
+            else:
+                # cross-reference stream section
+                self.xrt.append(xrt_section)
+
             trailer = Trailer(trailer_dictionary, xrt_section_byte_offset)
             if self.trailer is None:
                 self[PdfName("trailer")] = trailer
 
-            logger.debug(
-                "xrt section offset: 0x%x (%d)",
-                xrt_section_byte_offset,
-                xrt_section_byte_offset,
-            )
             if last_trailer is None:
                 last_trailer = trailer
 
@@ -158,8 +176,13 @@ class Document(PdfDictionary):
                 last_trailer.prev = trailer
                 last_trailer = trailer
 
+            logger.info("xrt section@%d is loaded with %d entries.",
+                        xrt_section_byte_offset,
+                        xrt_section.get_number_of_entries())
+
             xrt_section_byte_offset = trailer_dictionary.get(PdfName("Prev"), None)
             if xrt_section_byte_offset is None:
+                logger.info("all xrt sections are loaded.")
                 break
 
             xrt_section_byte_offset = xrt_section_byte_offset.p
@@ -212,5 +235,9 @@ class Document(PdfDictionary):
                     if obj_key not in self.objects:
                         self.objects[obj_key] = obj
 
-        logger.info("%d xrt entries.", num_xrt_entries)
-        logger.info("%d objects loaded.", len(self.body))
+        # if len(body) > 1, there is an update
+        if len(self.body) > 1:
+            logger.info("body loaded with %d update(s).", len(self.body) - 1)
+
+        else:
+            logger.info("body loaded (no updates).")

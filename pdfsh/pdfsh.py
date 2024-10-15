@@ -54,16 +54,18 @@ def run():
                 filename=args.log_file, level=logging.WARNING, format=logging_format
             )
 
-        if args.verbose >= 2:
-            logging_level = logging.DEBUG
+        logging_level = logging.WARNING
+        parser_logging_level = logging.WARNING
+        tokenizer_logging_level = logging.WARNING
 
-        elif args.verbose == 1:
-            logging_level = logging.INFO
-
-        else:
-            logging_level = logging.WARNING
+        if args.verbose >= 1:
+            logging_level = logging.DEBUG if args.verbose >= 2 else logging.INFO
+            parser_logging_level = logging.DEBUG if args.verbose >= 3 else logging.INFO
+            tokenizer_logging_level = logging.DEBUG if args.verbose >= 4 else logging.INFO
 
         logging.getLogger("pdfsh").setLevel(logging_level)
+        logging.getLogger("pdfsh.parser").setLevel(parser_logging_level)
+        logging.getLogger("pdfsh.tokenizer").setLevel(tokenizer_logging_level)
         logger.info(args)
 
         with open(args.file, "rb") as f:

@@ -97,14 +97,20 @@ class CrossReferenceTableEntry(PdfDictionary):
 
     def __init__(
         self,
+        is_compressed: bool,
         object_number: int,
         generation_number: int,
         is_free: bool,
     ):
         super().__init__()
+        self[PdfName("is_compressed")] = PdfBoolean(is_compressed)
         self[PdfName("object_number")] = PdfIntegerNumber(object_number)
         self[PdfName("generation_number")] = PdfIntegerNumber(generation_number)
         self[PdfName("is_free")] = PdfBoolean(is_free)
+
+    @property
+    def is_compressed(self):
+        return self[PdfName("is_compressed")].p
 
     @property
     def object_number(self):
@@ -147,15 +153,13 @@ class CrossReferenceTableEntryUncompressed(CrossReferenceTableEntry):
         is_free: bool,
     ):
         super(CrossReferenceTableEntryUncompressed, self).__init__(
+            False,
             object_number,
             generation_number,
             is_free
         )
-        self[PdfName("byte_offset")] = PdfIntegerNumber(byte_offset)
 
-    @property
-    def is_compressed(self):
-        return False
+        self[PdfName("byte_offset")] = PdfIntegerNumber(byte_offset)
 
     @property
     def byte_offset(self):
@@ -177,6 +181,7 @@ class CrossReferenceTableEntryCompressed(CrossReferenceTableEntry):
         # compressed objects always have generation number = 0
         # and they are always used, never free
         super(CrossReferenceTableEntryCompressed, self).__init__(
+            True,
             object_number,
             0,
             False
@@ -184,10 +189,6 @@ class CrossReferenceTableEntryCompressed(CrossReferenceTableEntry):
 
         self[PdfName("object_stream_number")] = PdfIntegerNumber(object_stream_number)
         self[PdfName("object_stream_index")] = PdfIntegerNumber(object_stream_index)
-
-    @property
-    def is_compressed(self):
-        return True
 
     @property
     def object_stream_number(self):
@@ -234,7 +235,7 @@ class CrossReferenceTableSubsection(PdfDictionary):
                 parser,
                 object_number
             )
-            logger.debug("xrt_entry: %s", xrt_entry)
+            logger.debug("xrt_entry (table)=%s", xrt_entry)
             xrt_subsection.append_entry(xrt_entry)
         return xrt_subsection
 
@@ -260,12 +261,12 @@ class CrossReferenceTableSubsection(PdfDictionary):
                          object_number,
                          first_object_number + number_of_entries,
                          fields)
-            xref_entry = CrossReferenceTableEntry.load_from_xref_stream(
+            xrt_entry = CrossReferenceTableEntry.load_from_xref_stream(
                 object_number,
                 fields
             )
-            logger.debug("xref_entry=%s", xref_entry)
-            xrt_subsection_entries.append(xref_entry)
+            logger.debug("xrt_entry (stream)=%s", xrt_entry)
+            xrt_subsection_entries.append(xrt_entry)
 
         return xrt_subsection
 
@@ -284,6 +285,9 @@ class CrossReferenceTableSubsection(PdfDictionary):
 
     def append_entry(self, entry):
         self.entries.append(entry)
+
+    def get_number_of_entries(self):
+        return len(self.entries)
 
 
 class CrossReferenceTableSection(PdfArray):
@@ -396,6 +400,12 @@ class CrossReferenceTableSection(PdfArray):
 
         return xrt_section
 
+    def get_number_of_entries(self):
+        cnt = 0
+        for subsection in self:
+            cnt = cnt + subsection.get_number_of_entries()
+        return cnt
+
 
 class CrossReferenceTable(PdfArray):
     """
@@ -411,3 +421,9 @@ class CrossReferenceTable(PdfArray):
                         return entry
 
         return None
+
+    def get_number_of_entries(self):
+        cnt = 0
+        for section in self:
+            cnt = cnt + section.get_number_of_entries()
+        return cnt
