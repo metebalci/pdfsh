@@ -13,11 +13,10 @@ import logging
 from typing import Any, Dict, List, Optional
 import zlib
 
-from pdfminer import ccitt
-from pdfminer import lzw
-from pdfminer.utils import apply_png_predictor
-
 from .exceptions import NotSupportedException, PossibleBugException
+from pdfsh.pdfminer import ccitt
+from pdfsh.pdfminer import lzw
+from pdfsh.pdfminer.utils import apply_png_predictor
 
 
 logger = logging.getLogger(__name__)

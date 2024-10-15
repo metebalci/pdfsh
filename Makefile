@@ -5,7 +5,8 @@ unit-test:
 type-check:
 	mypy pdfsh
 
-static-check:
+run-checks:
+	black --check pdfsh
 	pylint pdfsh
 
 upload:

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+version = "2024.3"
+name = "pdfsh"
+dependencies = [
+]
+requires-python = ">= 3.8"
+authors = [
+  {name = "Mete Balci", email = "metebalci@gmail.com"},
+]
+description = "minimal shell to investigate PDF files"
+readme = {file = "README.md", content-type = "text/markdown"}
+keywords = ["pdf"]
+classifiers = [
+  'Development Status :: 3 - Alpha',
+  'Environment :: Console',
+  'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+  'Programming Language :: Python :: 3.8',
+  'Topic :: Utilities',
+]
+
+[project.optional-dependencies]
+dev = [
+  "setuptools >= 61.0",
+  "black",
+  "pylint",
+  "build",
+  "twine",
+  "reuse"
+]
+
+[project.scripts]
+pdfsh = "pdfsh.pdfsh:run"
+
+[project.urls]
+Homepage = "https://github.com/metebalci/pdfsh"
+Documentation = "https://github.com/metebalci/pdfsh"
+Repository = "https://github.com/metebalci/pdfsh.git"
+Issues = "https://github.com/metebalci/pdfsh/issues"
+Changelog = "https://github.com/metebalci/pdfsh/blob/master/README.md"
+
+[tool.setuptools]
+packages = ["pdfsh"]
+
+[tool.pylint]
+disable = [
+  "unknown-option-value", 
+  "missing-module-docstring", 
+  "missing-class-docstring",
+  "missing-function-docstring",
+]
