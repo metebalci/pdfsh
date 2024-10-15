@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from typing import Optional
 
 from .exceptions import PossibleBugException, PdfConformanceException
 from .tokens import Token, TokenSolidus, TokenLiteral, TokenComment
@@ -102,7 +103,7 @@ class Tokenizer:
     #   but skips LF in CR LF because CR LF is considered as a single EOL marker
     # - None when exhausted
     # pylint: disable=too-many-branches
-    def _read_char(self) -> int | None:
+    def _read_char(self) -> Optional[int]:
         if self.pos == len(self.buffer):
             return None
 
@@ -391,7 +392,7 @@ class Tokenizer:
 
         return token
 
-    def next(self) -> Token | None:
+    def next(self) -> Optional[Token]:
         token = None
         if self.context == _TOKENIZER_CONTEXT_FREE:
             literal = None

@@ -10,7 +10,7 @@ import base64
 from collections.abc import MutableMapping, MutableSequence
 import functools
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 import zlib
 
 from pdfsh.pdfminer import ccitt
@@ -159,7 +159,7 @@ class PdfString(PdfDirectObject):
 class PdfLiteralString(PdfString):
     """PdfLiteralString"""
 
-    def __init__(self, value: bytes | str) -> None:
+    def __init__(self, value: Union[bytes, str]) -> None:
         if isinstance(value, str):
             value = value.encode("utf-8")
         assert isinstance(value, bytes), value
@@ -208,7 +208,7 @@ class PdfHexadecimalString(PdfString):
 class PdfName(PdfDirectObject):
     """PdfName"""
 
-    def __init__(self, value: str | bytes) -> None:
+    def __init__(self, value: Union[str, bytes]) -> None:
         if isinstance(value, str):
             value = value.encode("ascii")
         assert isinstance(value, bytes), value
