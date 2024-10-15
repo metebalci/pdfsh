@@ -1,37 +1,18 @@
 # Copyright (C) 2024 Mete Balci
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-# pdfsh: a minimal shell to investigate PDF files
-# Copyright (C) 2024 Mete Balci
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 import unittest
 
 from pdfsh.shell import ShellNode, ShellTree, Shell
 
+from . import enable_debug_logging
+
 class TestShell(unittest.TestCase):
 
-    def __debug():
-        loggingFormat = '%(levelname)s/%(filename)s: %(message)s'
-        logging.basicConfig(format=loggingFormat)
-        logging.getLogger('pdfsh').setLevel(logging.DEBUG)
-
     def setUp(self):
-        TestShell.__debug()
+        enable_debug_logging()
         self.root = ShellNode('root', 'root_obj', None)
         self.c0 = ShellNode('c0', 'c0_obj', self.root)
         self.c1 = ShellNode('c1', 'c1_obj', self.root)

@@ -132,10 +132,13 @@ class ShellNode:
         self.name = name
         self.data = data
         self.parent = parent
+        self._childs = []
+        if self.parent is not None:
+            self.parent._childs.append(self)
 
     def __str__(self):
         parent_name = self.parent.name if self.parent is not None else ""
-        return f"{self.name} t:{type(self.data)} p:{parent_name}"
+        return f"ShellNode({self.name}, t:<{self.data.__class__.__name__}>, p:{parent_name})"
 
     def __repr__(self):
         return str(self)
@@ -151,26 +154,30 @@ class ShellNode:
 
     @property
     def childs(self):
-        childs = []
         # special handling for document
         if isinstance(self.data, Document):
+            childs = []
             childs.append(ShellNode("header", self.data.header, self))
             childs.append(ShellNode("body", self.data.body, self))
             childs.append(ShellNode("xrt", self.data.xrt, self))
             childs.append(ShellNode("trailer", self.data.trailer, self))
             childs.append(ShellNode("objects", self.data.objects, self))
+            return childs
 
-        elif isinstance(self.data, PdfArray):
+        # special handling for PdfArray
+        if isinstance(self.data, PdfArray):
+            childs = []
             for i, array_element in enumerate(self.data):
                 childs.append(ShellNode(f"{i}", array_element, self))
+            return childs
 
-        elif isinstance(self.data, PdfDictionary):
+        # special handling for PdfDictionary
+        if isinstance(self.data, PdfDictionary):
+            childs = []
             for k, v in self.data.items():
                 # k is PdfName for sure and
                 # str(PdfName) starts with /
                 childs.append(ShellNode(f"{str(k)[1:]}", v, self))
-
-        if isinstance(self.data, Document):
             return childs
 
         def sort_nodes(node):
@@ -179,7 +186,7 @@ class ShellNode:
 
             return f"{'~'*10}{node.name}"
 
-        return sorted(childs, key=sort_nodes)
+        return sorted(self._childs, key=sort_nodes)
 
 
 # pylint: disable=missing-function-docstring
@@ -241,16 +248,24 @@ class ShellTree:
         return node
 
     def go_up(self) -> bool:
+        """navigates up to the parent"""
         if self.current is not self.root:
             self.current = self.current.parent
             return True
+
+        logger.debug("cannot go_up, current node=%s is root", self.current)
         return False
 
     def go_down(self, node: ShellNode) -> bool:
+        """navigates into the child node node"""
         for child_node in self.current.childs:
             if child_node == node:
                 self.current = child_node
                 return True
+
+        logger.debug("cannot go_down, %s is not a child of current node=%s",
+                    node,
+                    self.current)
         return False
 
 

@@ -1,29 +1,18 @@
 # Copyright (C) 2024 Mete Balci
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-# pdfsh: a minimal shell to investigate PDF files
-# Copyright (C) 2024 Mete Balci
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import unittest
 
-from pdfsh import Parser
+from pdfsh.parser import Parser
 from pdfsh.objects import *
 
+from . import enable_debug_logging
+
 class TestParser(unittest.TestCase):
+
+    def setUp(self):
+        enable_debug_logging()
 
     def test_boolean_false(self):
         buffer = 'false'.encode('ascii')
@@ -208,4 +197,4 @@ endobj
         self.assertIsInstance(obj, PdfIndirectObject)
         self.assertEqual(obj.object_number, 12)
         self.assertEqual(obj.generation_number, 0)
-        self.assertEqual(obj.p, PdfLiteralString(b'Brillig'))
+        self.assertEqual(obj.value, PdfLiteralString(b'Brillig'))
