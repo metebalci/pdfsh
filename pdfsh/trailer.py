@@ -1,35 +1,17 @@
 # Copyright (C) 2024 Mete Balci
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-# pdfsh: a minimal shell to investigate PDF files
-# Copyright (C) 2024 Mete Balci
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import re
 
-from .exceptions import *
-from .parser import Parser
-from .objects import *
+from .exceptions import PdfConformanceException
+from .objects import PdfName, PdfIntegerNumber, PdfDictionary
+
 
 logger = logging.getLogger(__name__)
 
-class Trailer(PdfDictionary):
 
-    offset_re = re.compile(r"^[0-9]+$")
+class Trailer(PdfDictionary):
 
     # ISO 32000-2:2020 7.5.5: File trailer
     #
@@ -43,22 +25,20 @@ class Trailer(PdfDictionary):
     # The startxref line shall be preceded by the trailer dictionary,
     # consisting of the keyword trailer followed by a series of key-value pairs
     # enclosed in double angle branches << >>.
-    def __init__(self,
-                 dictionary:PdfDictionary,
-                 xref_section_byte_offset:int):
+    def __init__(self, dictionary: PdfDictionary, xref_section_byte_offset: int):
 
-        if PdfName('Root') not in dictionary:
-            raise PdfConformanceException('trailer has no Root')
+        if PdfName("Root") not in dictionary:
+            raise PdfConformanceException("trailer has no Root")
 
         super().__init__()
 
-        self[PdfName('dictionary')] = dictionary
-        self[PdfName('startxref')] = PdfIntegerNumber(xref_section_byte_offset)
+        self[PdfName("dictionary")] = dictionary
+        self[PdfName("startxref")] = PdfIntegerNumber(xref_section_byte_offset)
 
     @property
     def prev(self):
-        return self[PdfName('prev')]
+        return self[PdfName("prev")]
 
     @prev.setter
     def prev(self, new_prev: PdfDictionary):
-        self[PdfName('prev')] = new_prev
+        self[PdfName("prev")] = new_prev

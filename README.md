@@ -34,6 +34,11 @@ For an introduction to PDF and a tutorial using `pdfsh`, please see my blog post
 
 Version numbers are in `<year>.<positive_integer>` format. The `<positive_integer` is monotonically increasing in a year but reset to `1` in a new year.
 
+### 2024.3
+- `--version` option added
+- cross reference table stream support
+- migrated from setup.py to pyproject.toml 
+
 ### 2024.2
 - first public release
 
@@ -42,7 +47,12 @@ Version numbers are in `<year>.<positive_integer>` format. The `<positive_intege
 
 ## External Licenses
 
-- [ccitt.py](pdfminer/ccitt.py) and [lzw.py](pdfminer/lzw.py) are part of [pdfminer.six](https://github.com/pdfminer/pdfminer.six): [Copyright (c) 2004-2016  Yusuke Shinyama \<yusuke at shinyama dot jp\>](LICENSE.pdfminer.six)
+### pdfminer.six
+
+[pdfminer.six](https://github.com/pdfminer/pdfminer.six): [Copyright (c) 2004-2016  Yusuke Shinyama \<yusuke at shinyama dot jp\>](LICENSE.pdfminer.six)
+
+- [ccitt.py](pdfminer/ccitt.py) and [lzw.py](pdfminer/lzw.py) are part of pdfminer.six
+- [utils.py](pdfminer/utils.py) contains one function (`apply_png_predictor`) from the same source file (utils.py) from pdfminer.six.
 
 # License
 

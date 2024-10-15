@@ -1,24 +1,13 @@
 # Copyright (C) 2024 Mete Balci
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-# pdfsh: a minimal shell to investigate PDF files
-# Copyright (C) 2024 Mete Balci
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""
+pdfsh
+"""
 
 import argparse
+from importlib.metadata import version
 import logging
 import sys
 import traceback
@@ -26,60 +15,67 @@ import traceback
 from .document import Document
 from .shell import Shell
 
+
 logger = logging.getLogger(__name__)
 
+
 def run():
+    """pdfsh run loop"""
     try:
-        parser = argparse.ArgumentParser(
-            prog='pdfsh',
-            description='',
-            epilog='')
-        parser.add_argument('file',
-                            help='pdf file')
-        parser.add_argument('-c', '--cmdline',
-                            help='execute CMDLINE and send output to stdout')
-        parser.add_argument('-d', '--debug',
-                            action='store_true',
-                            help='enable DEBUG logging')
-        parser.add_argument('-v', '--verbose',
-                            action='store_true',
-                            help='enable VERBOSE/INFO logging')
-        parser.add_argument('--log-file',
-                            default='pdfsh.log',
-                            help='output logs to LOG_FILE (defaults: pdfsh.log)')
+        parser = argparse.ArgumentParser(prog="pdfsh", description="", epilog="")
+        parser.add_argument("file", help="pdf file")
+        parser.add_argument("--version", action="version", version=version("pdfsh"))
+        parser.add_argument(
+            "-c",
+            "--cmdline",
+            help="execute CMDLINE and send output to stdout"
+        )
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action="count",
+            help="enable VERBOSE/DEBUG logging",
+            default=0,
+        )
+        parser.add_argument(
+            "--log-file",
+            default="pdfsh.log",
+            help="output logs to LOG_FILE (defaults: pdfsh.log) or - for stderr",
+        )
         args = parser.parse_args()
 
-        loggingFormat = '%(levelname)s/%(filename)s: %(message)s'
+        logging_format = "%(levelname)5s:%(filename)15s: %(message)s"
 
-        if args.log_file is not None:
-            logging.basicConfig(filename=args.log_file,
-                                format=loggingFormat)
+        if args.log_file is None or args.log_file == '-':
+            logging.basicConfig(level=logging.WARNING, format=logging_format)
+
+        elif args.log_file is not None:
+            logging.basicConfig(
+                filename=args.log_file, level=logging.WARNING, format=logging_format
+            )
+
+        if args.verbose >= 2:
+            logging_level = logging.DEBUG
+
+        elif args.verbose == 1:
+            logging_level = logging.INFO
 
         else:
-            logging.basicConfig(format=loggingFormat)
+            logging_level = logging.WARNING
 
-        if args.debug:
-            print(args)
-            logging.getLogger('pdfsh').setLevel(logging.DEBUG)
+        logging.getLogger("pdfsh").setLevel(logging_level)
+        logger.info(args)
 
-        elif args.verbose:
-            logging.getLogger('pdfsh').setLevel(logging.INFO)
-
-        else:
-            logging.getLogger('pdfsh').setLevel(logging.WARNING)
-
-        with open(args.file, 'rb') as f:
+        with open(args.file, "rb") as f:
             document = Document(f.read())
             if args.cmdline is None:
-                print('pdfsh  Copyright (C) 2024  Mete Balci')
-                print('License GPLv3+: GNU GPL version 3 or later')
-                logger.debug('platform: %s' % sys.platform)
-                if not sys.platform.startswith('linux'):
-                    print('WARNING: pdfsh is only tested on Linux')
+                print("pdfsh  Copyright (C) 2024  Mete Balci")
+                print("License GPLv3+: GNU GPL version 3 or later")
+                logger.debug("platform: %s", sys.platform)
+                if not sys.platform.startswith("linux"):
+                    print("WARNING: pdfsh is only tested on Linux")
 
-            shell = Shell(document.get_object_by_ref,
-                          document,
-                          '%s' % args.file)
+            shell = Shell(document.get_object_by_ref, document, f"{args.file}")
             if args.cmdline:
                 shell.raw = True
                 shell.process_cmdline(args.cmdline)
@@ -87,9 +83,13 @@ def run():
             else:
                 shell.run()
 
-    except Exception as e:
+        return 0
+
+    # pylint: disable=broad-exception-caught
+    except Exception:
         traceback.print_exc()
         return 1
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(run())

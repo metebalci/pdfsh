@@ -1,33 +1,23 @@
 # Copyright (C) 2024 Mete Balci
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-#
-# pdfsh: a minimal shell to investigate PDF files
-# Copyright (C) 2024 Mete Balci
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""
+header
+"""
 
 import logging
 import re
 
-from .exceptions import *
+from .exceptions import PdfConformanceException
 from .parser import Parser
-from .objects import *
+from .objects import PdfDictionary, PdfName, PdfLiteralString
 
 logger = logging.getLogger(__name__)
 
+
 class Header(PdfDictionary):
+    """PDF header"""
 
     version_re = re.compile(r"^%PDF-[12]\.[0-9]$")
 
@@ -37,18 +27,19 @@ class Header(PdfDictionary):
     # The file header shall consists of %PDF-1.n or %PDF-2.n followed by a
     # single EOL marker, where 'n' is a single digit number between 0 and 9
     @staticmethod
-    def load(parser):
+    def load(parser: Parser):
+        """loads header from the parser"""
         line = parser.next_line()
-        logger.info('header: %s' % line.decode('ascii', 'replace'))
-        line = line[0:8].decode('ascii', 'replace')
+        logger.info("header: %s", line.decode("ascii", "replace"))
+        line = line[0:8].decode("ascii", "replace")
         if Header.version_re.match(line) is None:
-            raise PdfConformanceException('PDF version is invalid')
+            raise PdfConformanceException("PDF version is invalid")
 
         version = line[5:]
-        logger.info('version: %s' % version)
+        logger.info("version: %s", version)
         return Header(line, version)
 
-    def __init__(self, line:str, version:str):
+    def __init__(self, line: str, version: str):
         super().__init__()
-        self[PdfName('line')] = PdfLiteralString(line)
-        self[PdfName('version')] = PdfName(version)
+        self[PdfName("line")] = PdfLiteralString(line)
+        self[PdfName("version")] = PdfName(version)
