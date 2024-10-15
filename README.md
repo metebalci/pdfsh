@@ -40,11 +40,13 @@ For an introduction to PDF and a tutorial using `pdfsh`, please see my blog post
 
 Version numbers are in `<year>.<positive_integer>` format. The `<positive_integer` monotonically increases in the same year but resets to `1` in the new year.
 
-### 2024.3
+### 2024.4
 - cross-reference streams support
 - object streams support
 - `--version` option added
 - migrated from setup.py to pyproject.toml 
+
+### 2024.3 is skipped
 
 ### 2024.2
 - first public release
