@@ -7,10 +7,9 @@ objects
 """
 
 import base64
-from collections.abc import MutableMapping, MutableSequence
 import functools
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, MutableMapping, MutableSequence, Union
 import zlib
 
 from pdfsh.pdfminer import ccitt
