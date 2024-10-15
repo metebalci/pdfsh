@@ -10,7 +10,7 @@ In `pdfsh`, similar to a file system, the PDF file is represented as a tree. All
 
 `pdfsh` has its own ISO 32000-2:2020 PDF-2.0 parser.
 
-`pdfsh` uses ccitt and lzw filter implementations and png predictor implementation in [pdfminer.six](https://github.com/pdfminer/pdfminer.six). 
+`pdfsh` uses ccitt and lzw filter implementations and png predictor implementation in [pdfminer.six](https://github.com/pdfminer/pdfminer.six). To minimize the dependency, I decided to add the implementations of these directly to the pdfsh code, so there is no dependency to pdfminer.six.
 
 `pdfsh` assumes it is run under a ANSI capable terminal as it uses ANSI terminal features and colors. If strange behavior is observed, make sure the terminal emulation it is run is ANSI compatible.
 
