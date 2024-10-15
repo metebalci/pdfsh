@@ -81,7 +81,7 @@ class Document(PdfDictionary):
 
             stream_data = object_stream.stream_data
             parser = Parser(stream_data)
-            for i in range(0, entry.object_stream_index - 1):
+            for _ in range(0, entry.object_stream_index - 1):
                 parser.next()
 
             return parser.next()
@@ -113,6 +113,7 @@ class Document(PdfDictionary):
         self.parser.seek(0)
         self[PdfName("header")] = Header.load(self.parser)
 
+    # pylint: disable=too-many-branches
     def __load_xrt_sections_and_trailers(self):
         logger.debug("__load_xrt_sections_and_trailers")
         self[PdfName("xrt")] = CrossReferenceTable()
@@ -153,7 +154,7 @@ class Document(PdfDictionary):
 
                 else:
                     logger.info("This is a hybrid-reference file, switching to stream.")
-                    parser.seek(xref_stream_byte_offset)
+                    self.parser.seek(xref_stream_byte_offset)
                     trailer_dictionary, xrt_section = CrossReferenceTableSection.load(
                         self.parser
                     )

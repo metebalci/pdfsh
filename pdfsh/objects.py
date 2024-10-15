@@ -10,13 +10,14 @@ import base64
 from collections.abc import MutableMapping, MutableSequence
 import functools
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import zlib
 
-from .exceptions import NotSupportedException, PossibleBugException
 from pdfsh.pdfminer import ccitt
 from pdfsh.pdfminer import lzw
 from pdfsh.pdfminer.utils import apply_png_predictor
+
+from .exceptions import NotSupportedException, PossibleBugException
 
 
 logger = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class PdfLiteralString(PdfString):
         if isinstance(value, str):
             value = value.encode("utf-8")
         assert isinstance(value, bytes), value
-        super(PdfLiteralString, self).__init__(value)
+        super().__init__(value)
 
     def __str__(self) -> str:
         try:
@@ -189,7 +190,7 @@ class PdfHexadecimalString(PdfString):
 
     def __init__(self, value: bytes) -> None:
         assert isinstance(value, bytes), value
-        super(PdfHexadecimalString, self).__init__(value)
+        super().__init__(value)
 
     def __str__(self) -> str:
         if len(self.p) <= 16:
@@ -436,7 +437,10 @@ class PdfStream(PdfDirectObject):
             # 14: PNG prediction (on encoding, PNG Paeth on all rows)
             # 15: PNG prediction (on encoding, PNG optimum)
 
-            def reverse_predictor(data, predictor):
+            def reverse_predictor(data, decode_params):
+                predictor = decode_params.get(
+                    PdfName("Predictor"), PdfIntegerNumber(1)
+                ).p
                 if predictor == 1:
                     return data
 
@@ -450,15 +454,13 @@ class PdfStream(PdfDirectObject):
                         predictor, colors.p, columns.p, bits_per_component.p, data
                     )
 
-                raise UnsupportedException(f"predictor={predictor} not supported")
+                raise NotSupportedException(f"predictor={predictor} not supported")
 
             if stream_filter == PdfName("LZWDecode"):
-                predictor = decode_params.get(PdfName("Predictor"), PdfIntegerNumber(1))
-                return reverse_predictor(lzw.lzwdecode(stream_data), predictor.p)
+                return reverse_predictor(lzw.lzwdecode(stream_data), decode_params)
 
             if stream_filter == PdfName("FlateDecode"):
-                predictor = decode_params.get(PdfName("Predictor"), PdfIntegerNumber(1))
-                return reverse_predictor(zlib.decompress(stream_data), predictor.p)
+                return reverse_predictor(zlib.decompress(stream_data), decode_params)
 
             if stream_filter == PdfName("CCITTFaxDecode"):
                 assert (

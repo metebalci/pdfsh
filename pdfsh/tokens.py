@@ -109,6 +109,6 @@ class TokenLiteral(Token):
                 s.append(chr(b))
 
             else:
-                s.append("\\x%02x" % b)
+                s.append(f"\\x{b:02x}")
 
         return f"Token.\"{''.join(s)}\": 0x{self.as_hex()}"

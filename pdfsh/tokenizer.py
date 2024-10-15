@@ -101,6 +101,7 @@ class Tokenizer:
     # - the byte in current position if position < len(self.buffer)
     #   but skips LF in CR LF because CR LF is considered as a single EOL marker
     # - None when exhausted
+    # pylint: disable=too-many-branches
     def _read_char(self) -> int | None:
         if self.pos == len(self.buffer):
             return None
@@ -167,6 +168,8 @@ class Tokenizer:
 
     # read the buffer for literal string after it is introduced with (
     # because it has different rules
+    # pylint: disable=too-many-nested-blocks, too-many-branches
+    # pylint: disable=too-many-statements
     def _read_literal_string_content(self) -> Token:
         logger.debug("_read_literal_string_content")
         assert self.context == _TOKENIZER_CONTEXT_LITERAL_STRING
@@ -177,7 +180,7 @@ class Tokenizer:
             ch = self._read_char()
             if ch is None:
                 raise PdfConformanceException(
-                    "PDF exhausted when reading" " literal string before )"
+                    "PDF exhausted when reading literal string before )"
                 )
 
             if ch in EOL_CHARACTERS:
@@ -190,7 +193,7 @@ class Tokenizer:
                 ch = self._read_char()
                 if ch is None:
                     raise PdfConformanceException(
-                        "PDF exhausted when reading" " literal string before )"
+                        "PDF exhausted when reading literal string before )"
                     )
 
                 if ch == "n":
@@ -271,7 +274,7 @@ class Tokenizer:
                             )
                             if ddd >= 0xFF:
                                 raise PdfConformanceException(
-                                    "\\ddd is greater" " than 0xFF"
+                                    "\\ddd is greater than 0xFF"
                                 )
 
                             token.push(ddd)
@@ -306,7 +309,7 @@ class Tokenizer:
             ch = self._read_char()
             if ch is None:
                 raise PdfConformanceException(
-                    "PDF exhausted when reading" " hexadecimal string before >"
+                    "PDF exhausted when reading hexadecimal string before >"
                 )
 
             if ch == ord(">"):
@@ -359,7 +362,7 @@ class Tokenizer:
                     ch = self._read_char()
                     if ch is None:
                         raise PdfConformanceException(
-                            "PDF exhausted when " "reading name (#dd)"
+                            "PDF exhausted when reading name (#dd)"
                         )
 
                     v2 = Tokenizer.__hexdigit_to_int(ch)

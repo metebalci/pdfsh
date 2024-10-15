@@ -119,6 +119,9 @@ class Parser:
     def seek(self, pos):
         self.tokenizer.seek(pos)
 
+    # pylint: disable=too-many-locals, too-many-nested-blocks,
+    # pylint: disable=too-many-return-statements, too-many-branches
+    # pylint: disable=too-many-statements
     def next(self):
         token = self.tokenizer.next()
         if isinstance(token, TokenLiteral):

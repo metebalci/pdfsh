@@ -63,7 +63,7 @@ class CrossReferenceTableEntry(PdfDictionary):
                 True,
             )
 
-        elif entry_type == 1:
+        if entry_type == 1:
             byte_offset = 0
             generation_number = 0
             if len(fields[1]) > 0:
@@ -79,7 +79,7 @@ class CrossReferenceTableEntry(PdfDictionary):
                 False,
             )
 
-        elif entry_type == 2:
+        if entry_type == 2:
 
             object_stream_number = __bytes2int(fields[1])
             object_stream_index = __bytes2int(fields[2])
@@ -90,10 +90,7 @@ class CrossReferenceTableEntry(PdfDictionary):
                 object_stream_index,
             )
 
-        else:
-            raise PdfConformanceException(
-                f"unknown xref stream entry type={entry_type}"
-            )
+        raise PdfConformanceException(f"unknown xref stream entry type={entry_type}")
 
     def __init__(
         self,
@@ -152,9 +149,7 @@ class CrossReferenceTableEntryUncompressed(CrossReferenceTableEntry):
         generation_number: int,
         is_free: bool,
     ):
-        super(CrossReferenceTableEntryUncompressed, self).__init__(
-            False, object_number, generation_number, is_free
-        )
+        super().__init__(False, object_number, generation_number, is_free)
 
         self[PdfName("byte_offset")] = PdfIntegerNumber(byte_offset)
 
@@ -174,9 +169,7 @@ class CrossReferenceTableEntryCompressed(CrossReferenceTableEntry):
     ):
         # compressed objects always have generation number = 0
         # and they are always used, never free
-        super(CrossReferenceTableEntryCompressed, self).__init__(
-            True, object_number, 0, False
-        )
+        super().__init__(True, object_number, 0, False)
 
         self[PdfName("object_stream_number")] = PdfIntegerNumber(object_stream_number)
         self[PdfName("object_stream_index")] = PdfIntegerNumber(object_stream_index)
@@ -190,7 +183,6 @@ class CrossReferenceTableEntryCompressed(CrossReferenceTableEntry):
         return self[PdfName("object_stream_index")].p
 
     def __str__(self):
-        flag = "f" if self.is_free else "n"
         return f"{self.object_stream_index}@{self.object_stream_number}"
 
 
@@ -241,7 +233,7 @@ class CrossReferenceTableSubsection(PdfDictionary):
         for i in range(0, number_of_entries):
             object_number = first_object_number + i
             fields = []
-            for field_number, field_size in enumerate(w):
+            for field_size in w:
                 field_data = stream_data[offset : offset + field_size]
                 fields.append(field_data)
                 offset = offset + field_size
@@ -313,15 +305,13 @@ class CrossReferenceTableSection(PdfArray):
                         CrossReferenceTableSection.__load_from_xref_stream(obj.value),
                     )
 
-                else:
-                    raise PdfConformanceException(
-                        "startxref points to a stream but its Type is not XRef"
-                    )
-
-            else:
                 raise PdfConformanceException(
-                    "startxref points to an indirect object but it is not a stream"
+                    "startxref points to a stream but its Type is not XRef"
                 )
+
+            raise PdfConformanceException(
+                "startxref points to an indirect object but it is not a stream"
+            )
 
         raise PdfConformanceException(
             "startxref does not point to an xref or to an indirect object"

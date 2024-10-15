@@ -14,7 +14,6 @@ import termios
 import tty
 from typing import List
 
-from .exceptions import PossibleBugException
 
 logger = logging.getLogger(__name__)
 
