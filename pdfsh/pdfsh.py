@@ -26,9 +26,7 @@ def run():
         parser.add_argument("file", help="pdf file")
         parser.add_argument("--version", action="version", version=version("pdfsh"))
         parser.add_argument(
-            "-c",
-            "--cmdline",
-            help="execute CMDLINE and send output to stdout"
+            "-c", "--cmdline", help="execute CMDLINE and send output to stdout"
         )
         parser.add_argument(
             "-v",
@@ -46,7 +44,7 @@ def run():
 
         logging_format = "%(levelname)5s:%(filename)15s: %(message)s"
 
-        if args.log_file is None or args.log_file == '-':
+        if args.log_file is None or args.log_file == "-":
             logging.basicConfig(level=logging.WARNING, format=logging_format)
 
         elif args.log_file is not None:
@@ -61,7 +59,9 @@ def run():
         if args.verbose >= 1:
             logging_level = logging.DEBUG if args.verbose >= 2 else logging.INFO
             parser_logging_level = logging.DEBUG if args.verbose >= 3 else logging.INFO
-            tokenizer_logging_level = logging.DEBUG if args.verbose >= 4 else logging.INFO
+            tokenizer_logging_level = (
+                logging.DEBUG if args.verbose >= 4 else logging.INFO
+            )
 
         logging.getLogger("pdfsh").setLevel(logging_level)
         logging.getLogger("pdfsh.parser").setLevel(parser_logging_level)

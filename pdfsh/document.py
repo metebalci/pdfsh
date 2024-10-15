@@ -143,8 +143,9 @@ class Document(PdfDictionary):
                 if not isinstance(trailer_dictionary, PdfDictionary):
                     raise PdfConformanceException("trailer is not a dictionary")
 
-                xref_stream_byte_offset = trailer_dictionary.get(PdfName('XRefStm'),
-                                                                 None)
+                xref_stream_byte_offset = trailer_dictionary.get(
+                    PdfName("XRefStm"), None
+                )
 
                 if xref_stream_byte_offset is None:
                     # cross-reference table section
@@ -176,9 +177,11 @@ class Document(PdfDictionary):
                 last_trailer.prev = trailer
                 last_trailer = trailer
 
-            logger.info("xrt section@%d is loaded with %d entries.",
-                        xrt_section_byte_offset,
-                        xrt_section.get_number_of_entries())
+            logger.info(
+                "xrt section@%d is loaded with %d entries.",
+                xrt_section_byte_offset,
+                xrt_section.get_number_of_entries(),
+            )
 
             xrt_section_byte_offset = trailer_dictionary.get(PdfName("Prev"), None)
             if xrt_section_byte_offset is None:
@@ -227,8 +230,9 @@ class Document(PdfDictionary):
                     if xrt_entry.is_free:
                         continue
 
-                    obj = self.get_object_by_number(xrt_entry.object_number,
-                                                    xrt_entry.generation_number)
+                    obj = self.get_object_by_number(
+                        xrt_entry.object_number, xrt_entry.generation_number
+                    )
                     obj_id = f"{xrt_entry.object_number}.{xrt_entry.generation_number}"
                     obj_key = PdfName(obj_id)
                     current_body[obj_key] = obj

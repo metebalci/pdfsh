@@ -34,8 +34,8 @@ class CrossReferenceTableEntry(PdfDictionary):
         )
 
     @staticmethod
-    def load_from_xref_stream(object_number:int, fields:List[bytes]):
-        def __bytes2int(b:bytes):
+    def load_from_xref_stream(object_number: int, fields: List[bytes]):
+        def __bytes2int(b: bytes):
             v = 0
             factor = 1
             for e in reversed(b):
@@ -153,10 +153,7 @@ class CrossReferenceTableEntryUncompressed(CrossReferenceTableEntry):
         is_free: bool,
     ):
         super(CrossReferenceTableEntryUncompressed, self).__init__(
-            False,
-            object_number,
-            generation_number,
-            is_free
+            False, object_number, generation_number, is_free
         )
 
         self[PdfName("byte_offset")] = PdfIntegerNumber(byte_offset)
@@ -173,18 +170,12 @@ class CrossReferenceTableEntryUncompressed(CrossReferenceTableEntry):
 class CrossReferenceTableEntryCompressed(CrossReferenceTableEntry):
 
     def __init__(
-        self,
-        object_number: int,
-        object_stream_number: int,
-        object_stream_index: int
+        self, object_number: int, object_stream_number: int, object_stream_index: int
     ):
         # compressed objects always have generation number = 0
         # and they are always used, never free
         super(CrossReferenceTableEntryCompressed, self).__init__(
-            True,
-            object_number,
-            0,
-            False
+            True, object_number, 0, False
         )
 
         self[PdfName("object_stream_number")] = PdfIntegerNumber(object_stream_number)
@@ -228,12 +219,10 @@ class CrossReferenceTableSubsection(PdfDictionary):
             )
         xrt_subsection = CrossReferenceTableSubsection(first_object_number)
         for object_number in range(
-            first_object_number,
-            first_object_number + number_of_entries
+            first_object_number, first_object_number + number_of_entries
         ):
             xrt_entry = CrossReferenceTableEntry.load_from_xref_table(
-                parser,
-                object_number
+                parser, object_number
             )
             logger.debug("xrt_entry (table)=%s", xrt_entry)
             xrt_subsection.append_entry(xrt_entry)
@@ -253,17 +242,18 @@ class CrossReferenceTableSubsection(PdfDictionary):
             object_number = first_object_number + i
             fields = []
             for field_number, field_size in enumerate(w):
-                field_data = stream_data[offset:offset+field_size]
+                field_data = stream_data[offset : offset + field_size]
                 fields.append(field_data)
                 offset = offset + field_size
 
-            logger.debug("loading obj=%d/%d from fields=%s",
-                         object_number,
-                         first_object_number + number_of_entries,
-                         fields)
-            xrt_entry = CrossReferenceTableEntry.load_from_xref_stream(
+            logger.debug(
+                "loading obj=%d/%d from fields=%s",
                 object_number,
-                fields
+                first_object_number + number_of_entries,
+                fields,
+            )
+            xrt_entry = CrossReferenceTableEntry.load_from_xref_stream(
+                object_number, fields
             )
             logger.debug("xrt_entry (stream)=%s", xrt_entry)
             xrt_subsection_entries.append(xrt_entry)
@@ -320,7 +310,7 @@ class CrossReferenceTableSection(PdfArray):
                     logger.debug("xref as stream")
                     return (
                         obj.value.stream_dictionary,
-                        CrossReferenceTableSection.__load_from_xref_stream(obj.value)
+                        CrossReferenceTableSection.__load_from_xref_stream(obj.value),
                     )
 
                 else:
@@ -367,12 +357,12 @@ class CrossReferenceTableSection(PdfArray):
             index.append(size)
 
         # make index a List[int]
-        index = list(map(lambda x:x.p, index))
+        index = list(map(lambda x: x.p, index))
         assert (len(index) % 2) == 0
         w = stream.stream_dictionary[PdfName("W")]
         assert isinstance(w, PdfArray)
         # make w a List[int]
-        w = list(map(lambda x:x.p, w))
+        w = list(map(lambda x: x.p, w))
 
         size_of_one_entry = 0
         for single_w in w:
@@ -384,16 +374,18 @@ class CrossReferenceTableSection(PdfArray):
         while index_offset < len(index):
             first_object_number = index[index_offset]
             number_of_entries = index[index_offset + 1]
-            logger.debug("xref subsection %d %d",
-                         first_object_number,
-                         number_of_entries)
+            logger.debug(
+                "xref subsection %d %d", first_object_number, number_of_entries
+            )
             index_offset = index_offset + 2
-            next_stream_data_offset = stream_data_offset + size_of_one_entry*number_of_entries
+            next_stream_data_offset = (
+                stream_data_offset + size_of_one_entry * number_of_entries
+            )
             xrt_subsection = CrossReferenceTableSubsection.load_from_xref_stream(
                 first_object_number,
                 number_of_entries,
                 w,
-                stream.stream_data[stream_data_offset:next_stream_data_offset]
+                stream.stream_data[stream_data_offset:next_stream_data_offset],
             )
             xrt_section.append(xrt_subsection)
             stream_data_offset = next_stream_data_offset
@@ -416,8 +408,10 @@ class CrossReferenceTable(PdfArray):
         for section in self:
             for subsection in section:
                 for entry in subsection.entries:
-                    if (entry.object_number == object_number and
-                        entry.generation_number == generation_number):
+                    if (
+                        entry.object_number == object_number
+                        and entry.generation_number == generation_number
+                    ):
                         return entry
 
         return None

@@ -1,9 +1,9 @@
-
 # This method is taken from pdfminer.six [20240706] pdfminer/utils.py
 # in order to break its connection with pdfminer.six sources
 # UnsupportedException is imported as PDFValueError
 
 from pdfsh.exceptions import NotSupportedException as PdfValueError
+
 
 def apply_png_predictor(
     pred: int, colors: int, columns: int, bitspercomponent: int, data: bytes
@@ -51,7 +51,7 @@ def apply_png_predictor(
             #   Raw(x) = Up(x) + Prior(x)
             # (computed mod 256), where Prior() refers to the decoded bytes of
             # the prior scanline.
-            for (up_x, prior_x) in zip(line_encoded, line_above):
+            for up_x, prior_x in zip(line_encoded, line_above):
                 raw_x = (up_x + prior_x) & 255
                 raw.append(raw_x)
 

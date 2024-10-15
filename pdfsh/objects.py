@@ -377,11 +377,11 @@ class PdfStream(PdfDirectObject):
         stream_filter = stream_dictionary.get(PdfName("Filter"), None)
         decode_parms = stream_dictionary.get(PdfName("DecodeParms"), None)
         # stream_filters will contain PdfName's of filters
-        stream_filters:List[PdfName] = []
+        stream_filters: List[PdfName] = []
         # decode_params_list will contain decode_params for each filter
         # in stream_filters
         # it will be an empty dictionary
-        decode_params_list:List[Dict[PdfName, PdfDirectObject]] = []
+        decode_params_list: List[Dict[PdfName, PdfDirectObject]] = []
         if stream_filter is not None:
             if isinstance(stream_filter, PdfName):
                 stream_filters.append(stream_filter)
@@ -413,7 +413,7 @@ class PdfStream(PdfDirectObject):
 
         for i, stream_filter in enumerate(stream_filters):
             decode_params = decode_params_list[i]
-            logger.debug("part %d/%d", i+1, len(stream_filters))
+            logger.debug("part %d/%d", i + 1, len(stream_filters))
             logger.debug("stream_filter=%s", str(stream_filter))
             logger.debug("decode_params=%s", str(decode_params))
             # all stream filters defined in ISO 32000-2
@@ -441,30 +441,23 @@ class PdfStream(PdfDirectObject):
                     return data
 
                 if 10 <= predictor <= 15:
-                    colors = decode_params.get(PdfName("Colors"),
-                                               PdfIntegerNumber(1))
-                    columns = decode_params.get(PdfName("Columns"),
-                                                PdfIntegerNumber(1))
-                    bits_per_component = decode_params.get(PdfName("BitsPerComponent"),
-                                                           PdfIntegerNumber(8))
+                    colors = decode_params.get(PdfName("Colors"), PdfIntegerNumber(1))
+                    columns = decode_params.get(PdfName("Columns"), PdfIntegerNumber(1))
+                    bits_per_component = decode_params.get(
+                        PdfName("BitsPerComponent"), PdfIntegerNumber(8)
+                    )
                     return apply_png_predictor(
-                        predictor,
-                        colors.p,
-                        columns.p,
-                        bits_per_component.p,
-                        data
+                        predictor, colors.p, columns.p, bits_per_component.p, data
                     )
 
                 raise UnsupportedException(f"predictor={predictor} not supported")
 
             if stream_filter == PdfName("LZWDecode"):
-                predictor = decode_params.get(PdfName("Predictor"),
-                                              PdfIntegerNumber(1))
+                predictor = decode_params.get(PdfName("Predictor"), PdfIntegerNumber(1))
                 return reverse_predictor(lzw.lzwdecode(stream_data), predictor.p)
 
             if stream_filter == PdfName("FlateDecode"):
-                predictor = decode_params.get(PdfName("Predictor"),
-                                              PdfIntegerNumber(1))
+                predictor = decode_params.get(PdfName("Predictor"), PdfIntegerNumber(1))
                 return reverse_predictor(zlib.decompress(stream_data), predictor.p)
 
             if stream_filter == PdfName("CCITTFaxDecode"):
@@ -473,18 +466,16 @@ class PdfStream(PdfDirectObject):
                 ), f"stream filter {stream_filter.decode('ascii')} not implemented yet"
                 # default values below are taken from PDF spec
                 params = {
-                    "K": decode_params.get(PdfName("K"),
-                                           PdfIntegerNumber(0)),
-                    "Columns": decode_params.get(PdfName("Columns"),
-                                                 PdfIntegerNumber(1728)),
+                    "K": decode_params.get(PdfName("K"), PdfIntegerNumber(0)),
+                    "Columns": decode_params.get(
+                        PdfName("Columns"), PdfIntegerNumber(1728)
+                    ),
                     "EncodedByteAlign": decode_params.get(
-                        PdfName("EncodedByteAlign"),
-                        "false"
-                    ) == "true",
-                    "BlackIs1": decode_params.get(
-                        PdfName("BlackIs1"),
-                        "false"
-                    ) == "true",
+                        PdfName("EncodedByteAlign"), "false"
+                    )
+                    == "true",
+                    "BlackIs1": decode_params.get(PdfName("BlackIs1"), "false")
+                    == "true",
                 }
                 return ccitt.ccittfaxdecode(stream_data, params)
 

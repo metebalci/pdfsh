@@ -1,5 +1,7 @@
 # pdfsh
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/metebalci/pdfsh/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/metebalci/pdfsh/tree/main)
+
 `pdfsh` is a utility to investigate the PDF file structure in a shell-like interface. It allows one to "mount" a PDF file and use a simple shell-like interface to navigate inside the PDF file structurally.
 
 Technically, `pdfsh` is a PDF processor, a PDF reader, but not a viewer that renders the page contents.

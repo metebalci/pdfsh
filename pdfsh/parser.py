@@ -31,6 +31,7 @@ real2_re = re.compile(r"^[\+\-]?[0-9]+\.[0-9]*$")
 LF = 0x0A
 CR = 0x0D
 
+
 # parser for PDF data in buffer
 # pylint: disable=missing-function-docstring
 class Parser:

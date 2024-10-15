@@ -15,8 +15,6 @@ from .tokens import TokenLiteralStringStart, TokenLiteralStringEnd
 logger = logging.getLogger(__name__)
 
 
-
-
 # ISO/DIS 32000-2 7.2.3 Character set
 # Character set is divided into three classes
 # rules are applicable to everything except strings, streams and comments

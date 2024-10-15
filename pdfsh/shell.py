@@ -263,9 +263,9 @@ class ShellTree:
                 self.current = child_node
                 return True
 
-        logger.debug("cannot go_down, %s is not a child of current node=%s",
-                    node,
-                    self.current)
+        logger.debug(
+            "cannot go_down, %s is not a child of current node=%s", node, self.current
+        )
         return False
 
 
