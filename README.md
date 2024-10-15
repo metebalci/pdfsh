@@ -8,7 +8,7 @@ In `pdfsh`, similar to a file system, the PDF file is represented as a tree. All
 
 `pdfsh` has its own ISO 32000-2:2020 PDF-2.0 parser.
 
-`pdfsh` uses ccitt and lzw filter implementations in [pdfminer.six](https://github.com/pdfminer/pdfminer.six). 
+`pdfsh` uses ccitt and lzw filter implementations and png predictor implementation in [pdfminer.six](https://github.com/pdfminer/pdfminer.six). 
 
 `pdfsh` assumes it is run under a ANSI capable terminal as it uses ANSI terminal features and colors. If strange behavior is observed, make sure the terminal emulation it is run is ANSI compatible.
 
@@ -30,13 +30,18 @@ When `pdfsh` is run as `pdfsh <pdf_file>`, the shell interface is loaded with th
 
 For an introduction to PDF and a tutorial using `pdfsh`, please see my blog post [A Minimum Complete Tutorial of Portable Document Format (PDF) with pdfsh](https://metebalci.com/blog/a-minimum-complete-tutorial-of-pdf-with-pdfsh/).
 
+## Notes
+
+`pdfsh` supports both cross-reference tables and cross-reference streams as well as hybrid-reference files. However, because `pdfsh` eagerly constructs the cross-reference table, either the cross-reference table or cross-reference stream is read in a particular update section. Thus, an object that is not visible in cross-reference stream but visible in cross-reference table cannot be found. More information about this topic can be found in ISO 32000-2:2020 7.5.8.4. Compatibility with applications that do not support compressed reference streams.
+
 ## Changes
 
-Version numbers are in `<year>.<positive_integer>` format. The `<positive_integer` is monotonically increasing in a year but reset to `1` in a new year.
+Version numbers are in `<year>.<positive_integer>` format. The `<positive_integer` monotonically increases in the same year but resets to `1` in the new year.
 
 ### 2024.3
+- cross-reference streams support
+- object streams support
 - `--version` option added
-- cross reference table stream support
 - migrated from setup.py to pyproject.toml 
 
 ### 2024.2
